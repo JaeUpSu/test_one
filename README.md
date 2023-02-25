@@ -1,70 +1,246 @@
-# Getting Started with Create React App
+HTML 기능별로 대충 구성하기
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+chakra-ui
+react-query
+mutation
+react-hook-form
 
-## Available Scripts
+## chakra ui
 
-In the project directory, you can run:
+    Chackra UI Install
+    Style props
+    Components in Chakra UI
+    Theming
+    Responsiveness
 
-### `npm start`
+    ---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+    npm i @chakra-ui/react @emotion/react @emotion/styled framer-motion
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    ---
 
-### `npm test`
+    [index.jsx]
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    ...
+    import React from 'react'
 
-### `npm run build`
+    // [add] import
+    import { ChakraProvider } from '@chakra-ui/react'
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    ReactDOM.render(
+        <React.StrictMode>
+            <ChakraProvider>
+                <App />
+            </ChakraProvider>
+        </React.StrictMode>
+        document.getElementById('root')
+    );
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    ---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    필요한 컴포넌트, style props 등 적용하여 사용 (BootStrap 같음)
+    hover 나 focus 등 다 있음
 
-### `npm run eject`
+## react-query
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+    - 캐싱 하기
+    - 동기화 하기
+    - 업데이트 하기
+    - Server state 를 쉽게 가져오기
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    - React App 구성
+        비동기 데이터를 저장하고 제공하는 것 의미
+        (기존 라이브러리는 비동기 또는 서버 상태 작업 그다지 적합)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+        - 캐싱
+        - 동일한 데이터를 여러요청 -> 단일요청 (중복 제거)
+        - 백그라운드에서 오래된 데이터 업데이트
+        - 데이터가 오래된 시기 파악
+        - 가능한 한 빨리 데이터 업데이트 반영
+        - 페이지 매김 및 지연 로드 데이터와 같은 성능 초기화
+        - 서버 상태의 메모리 및 가비지 수집 관리
+        - 구조적 공유를 통한 쿼리 결과 메모
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+    - 서버 상태 관리를 위한 최고의 라이브러리
+    - 구성이 필요 없이 즉시 사용 가능
 
-## Learn More
+    ----
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    npm i react-query
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    ----
 
-### Code Splitting
+    import {
+            QueryClient,
+            QueryClientProvider,
+            useQuery,
+            useMutation,
+            useQueryClient
+            } from 'react-query'
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+    import { getTodos, postTodo } from '../my-api'
 
-### Analyzing the Bundle Size
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+    const queryClient = new QueryClient();
 
-### Making a Progressive Web App
+    export default function App() {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <Example />
+            </QueryClientProvider>
+        )
+    }
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+    function Example() {
+        const {isLoading, error, data} = useQuery('repoData', () =>
+            fetch('https://api.github.com/repos/tannerlinsley/react-query').then(res => res.json())
+        )
 
-### Advanced Configuration
+        if (isLoading) return 'Loading...'
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+        if (error) return 'An error has occurred: ' + error.message
 
-### Deployment
+        return (
+            <div>
+                <h1>{data.name}</h1>
+                <p>{data.description}</p>
+                <strong>{data.subscribers_count}</strong>{' '}
+                <strong>{data.stargazers_count}</strong>{' '}
+                <strong>{data.forks_count}</strong>{' '}
+            </div>
+        )
+    }
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+    function Todos() {
+        const queryClient = useQueryClient()
+        const query = useQuery('todos',getTodos)
 
-### `npm run build` fails to minify
+        // Server State를 변경시키는 hook (create, update, delete)
+        const mutation = useMutation(postTodo, {
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+            // mutationFn 성공했을 때 실행
+            onSuccess: () => {
+                // 해당 쿼리를 invalidate 하고 refetch 함
+                queryClient.invalidateQueries('todos')
+            },
+        })
+
+        return (
+            <div>
+                <ul>
+                    {query.data.map(todo => (
+                        <li key={todo.id}>{todo.title}</li>
+                    ))}
+                </ul>
+                <button
+                    onClick={()=>{
+
+                        // mutationFn 을 trigger 하는 함수
+                        mutation.mutate({
+                            id: Date.now(),
+                            title: 'Do Laundary',
+                        })
+                    }}
+                >
+                    Add Todo
+                </button>
+            </div>
+        )
+    }
+
+    render(<App />, document.getElementById('root'))
+
+## tanstack/react-query
+
+    쿼리는 서버에서 데이터를 가져오기 위해
+    프로미스 기반의 메서드(GET, POST...) 와 사용
+    (데이터를 서버에서 수정하기 위해서는 Mutations을 사용한다.)
+
+## react-hook-form
+
+    - 양식을 쉽게 관리할 수 있는 사용자 지정 후크
+    - 하나의 객체를 선택적 인수로 사용
+
+    - useForm() 훅(hook) 함수를 부르기
+    - 결과 객체로 부터 register(), handleSubmit() 함수를 얻기
+    - register() 함수를 이용하여 각 입력란을 등록
+    - handleSubmit() 함수를 이용하여 form 요소에서 발생하는 submit 이벤트를 처리
+
+    - useForm() 훅(hook) 함수가 반환하는 객체의 formState 속성
+      양식이 현재 어떤 상태인지를 담는데,
+      formState으로 부터 isSubmitting 속성을 읽어서 양식이
+      현재 제출 중인 상태인지 아닌지 알기
+
+    ---
+
+    // 동기일 때
+    useForm({
+        defaultValues: {
+            firstName: '',
+            lastName: ''
+        }
+    })
+
+    // 비동기일 때
+    useForm({
+        defaultValues: async () => fetch('/api-endpoint');
+    })
+
+    ---
+
+    - useForm 을 이용한 LoginForm 만들기
+
+    import { useForm } from "react-hook-form";
+
+    function LoginForm({
+      onSubmit = async (data) => {
+        await new Promise((r) => setTimeout(r, 1000));
+        alert(JSON.stringify(data));
+      }
+    }) {
+      const {
+        register,
+        handleSubmit,
+        formState: { isSubmitting, isDirty, errors }
+      } = useForm();
+
+      return (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <label htmlFor="email">이메일</label>
+          <input
+            id="email"
+            type="text"
+            placeholder="test@email.com"
+            aria-invalid={!isDirty ? undefined : errors.email ? "true" : "false"}
+            {...register("email", {
+              required: "이메일은 필수 입력입니다.",
+              pattern: {
+                value: /\S+@\S+\.\S+/,
+                message: "이메일 형식에 맞지 않습니다."
+              }
+            })}
+          />
+          {errors.email && <small role="alert">{errors.email.message}</small>}
+          <label htmlFor="password">비밀번호</label>
+          <input
+            id="password"
+            type="password"
+            placeholder="****************"
+            aria-invalid={!isDirty ? undefined : errors.password ? "true" : "false"}
+            {...register("password", {
+              required: "비밀번호는 필수 입력입니다.",
+              minLength: {
+                value: 8,
+                message: "8자리 이상 비밀번호를 사용하세요."
+              }
+            })}
+          />
+          {errors.password && <small role="alert">{errors.password.message}</small>}
+          <button type="submit" disabled={isSubmitting}>
+            로그인
+          </button>
+        </form>
+      );
+    }
+
+    export default LoginForm;
